@@ -289,6 +289,32 @@
         <input type="text" id="tema" placeholder="Ej: La fe en tiempos difíciles" />
       </div>
       <div class="field">
+        <label>TIPO DE SERMÓN</label>
+        <select id="tiposermon">
+          <option value="expositivo">Expositivo — versículo por versículo</option>
+          <option value="temático">Temático — un tema, varios textos</option>
+          <option value="textual" selected>Textual — un versículo en profundidad</option>
+          <option value="narrativo">Narrativo — historia bíblica aplicada</option>
+          <option value="evangelístico">Evangelístico — dirigido a no creyentes</option>
+          <option value="doctrinal">Doctrinal — enseñanza teológica</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>OCASIÓN ESPECIAL</label>
+        <select id="ocasion">
+          <option value="ninguna">Ninguna — mensaje regular</option>
+          <option value="Navidad">Navidad</option>
+          <option value="Semana Santa">Semana Santa / Pascua</option>
+          <option value="Año Nuevo">Año Nuevo</option>
+          <option value="Boda">Boda</option>
+          <option value="Funeral">Funeral / Memorial</option>
+          <option value="Día de la Madre">Día de la Madre</option>
+          <option value="Día del Padre">Día del Padre</option>
+          <option value="Graduación">Graduación</option>
+          <option value="Dedicación de niños">Dedicación de niños</option>
+        </select>
+      </div>
+      <div class="field">
         <label>AUDIENCIA</label>
         <select id="audiencia">
           <option value="mixta">Mixta (creyentes y buscadores)</option>
@@ -395,6 +421,32 @@
       <div class="section-body" id="body-cierre"></div>
     </div>
 
+    <div class="result-section" id="sec-ilustraciones">
+      <div class="section-header" onclick="toggleSection('ilustraciones')">
+        <div class="section-label">
+          <span class="section-num">06</span>
+          <span class="section-title">Ilustraciones y Adaptaciones</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:0.8rem;">
+          <button class="btn-copy" onclick="copySection(event,'ilustraciones')">COPIAR</button>
+        </div>
+      </div>
+      <div class="section-body" id="body-ilustraciones"></div>
+    </div>
+
+    <div class="result-section" id="sec-pasajes">
+      <div class="section-header" onclick="toggleSection('pasajes')">
+        <div class="section-label">
+          <span class="section-num">07</span>
+          <span class="section-title">📖 Pasajes Bíblicos Relacionados</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:0.8rem;">
+          <button class="btn-copy" onclick="copySection(event,'pasajes')">COPIAR</button>
+        </div>
+      </div>
+      <div class="section-body" id="body-pasajes"></div>
+    </div>
+
     <button class="btn-reset" onclick="resetForm()">↺ GENERAR NUEVO SERMÓN</button>
   </div>
 
@@ -406,13 +458,15 @@
 </div>
 
 <script>
-const SECTIONS = ['gancho','tension','giro','mision','cierre'];
+const SECTIONS = ['gancho','tension','giro','mision','cierre','ilustraciones','pasajes'];
 const loadingMessages = [
   'ANALIZANDO EL VERSÍCULO...',
   'CONSTRUYENDO LA TENSIÓN NARRATIVA...',
   'TEJIENDO EL GIRO BÍBLICO...',
   'PREPARANDO LA MISIÓN...',
   'ESCRIBIENDO EL LLAMADO AL CIERRE...',
+  'GENERANDO ILUSTRACIONES...',
+  'BUSCANDO PASAJES RELACIONADOS...',
   'PULIENDO LOS DETALLES FINALES...'
 ];
 
@@ -465,6 +519,8 @@ async function generateSermon() {
   const audiencia = document.getElementById('audiencia').value;
   const duracion = document.getElementById('duracion').value;
   const contexto = document.getElementById('contexto').value.trim();
+  const tiposermon = document.getElementById('tiposermon').value;
+  const ocasion = document.getElementById('ocasion').value;
 
   if (!versiculo || !tema) {
     alert('Por favor ingresa el versículo central y el tema del mensaje.');
@@ -481,23 +537,27 @@ async function generateSermon() {
   const systemPrompt = `Eres un experto en homilética y comunicación cristiana contemporánea. 
 Tu tarea es crear sermones estructurados, poderosos y aplicables para predicadores modernos.
 Siempre respondes ÚNICAMENTE en formato JSON válido, sin texto adicional, sin markdown, sin bloques de código.
-El JSON debe tener exactamente estas 5 claves: gancho, tension, giro, mision, cierre.
+El JSON debe tener exactamente estas 7 claves: gancho, tension, giro, mision, cierre, ilustraciones, pasajes.
 Escribe en español natural, cálido y directo. Evita jerga religiosa excesiva.`;
 
   const userPrompt = `Crea un sermón completo con estos datos:
 - Versículo central: ${versiculo}
 - Tema: ${tema}
+- Tipo de sermón: ${tiposermon}
+- Ocasión especial: ${ocasion}
 - Audiencia: ${audiencia}
 - Duración objetivo: ${duracion}
 ${contexto ? `- Contexto adicional: ${contexto}` : ''}
 
 Devuelve SOLO este JSON (sin markdown ni texto extra):
 {
-  "gancho": "Apertura impactante de 2 minutos. Incluye: 1) Una pregunta provocadora o estadística sorprendente relacionada con el tema, 2) Una historia corta o situación cotidiana que conecte emocionalmente, 3) Transición hacia el versículo.",
+  "gancho": "Apertura impactante de 2 minutos. Incluye: 1) Una pregunta provocadora o estadística sorprendente relacionada con el tema, 2) Una historia corta o situación cotidiana que conecte emocionalmente, 3) Transición hacia el versículo. Si hay ocasión especial, conéctala naturalmente.",
   "tension": "Movimiento 1 — El problema real (6 minutos). Desarrolla: 1) El dolor o desafío que vive la audiencia hoy, 2) Por qué los intentos humanos normales fallan, 3) La tensión espiritual que crea la necesidad del mensaje. Sé específico y humano.",
-  "giro": "Movimiento 2 — La verdad bíblica (14 minutos). Incluye: 1) Lectura y contexto histórico del versículo ${versiculo}, 2) Las 3 verdades clave que emergen del texto, 3) Cómo cada verdad responde directamente a la tensión del movimiento 1, 4) Una ilustración o historia que ancle cada verdad. Sé profundo pero accesible.",
-  "mision": "Movimiento 3 — Aplicación práctica (8 minutos). Define: 1) Qué puede hacer diferente la audiencia esta semana (acción específica), 2) Cómo se ve esto en la vida real de alguien de la audiencia, 3) La promesa de transformación que Dios ofrece al obedecer.",
-  "cierre": "Llamado final (3 minutos). Incluye: 1) Resumen de la frase memorable del mensaje (la que se llevan a casa), 2) Llamado para creyentes: siguiente paso de fe concreto, 3) Llamado para buscadores: invitación cálida sin presión, 4) Oración de cierre sugerida."
+  "giro": "Movimiento 2 — La verdad bíblica (14 minutos). Aplica el estilo ${tiposermon}. Incluye: 1) Lectura y contexto histórico del versículo ${versiculo}, 2) Las 3 verdades clave que emergen del texto, 3) Cómo cada verdad responde directamente a la tensión del movimiento 1, 4) Una ilustración o historia que ancle cada verdad. Sé profundo pero accesible.",
+  "mision": "Movimiento 3 — Aplicación práctica (8 minutos). Define: 1) Qué puede hacer diferente la audiencia ${audiencia} esta semana (acción específica), 2) Cómo se ve esto en la vida real, 3) La promesa de transformación que Dios ofrece al obedecer.",
+  "cierre": "Llamado final (3 minutos). Incluye: 1) La frase memorable del mensaje (la que se llevan a casa), 2) Llamado para creyentes: siguiente paso de fe concreto, 3) Llamado para buscadores: invitación cálida sin presión, 4) Oración de cierre sugerida.",
+  "ilustraciones": "3 ilustraciones listas para usar:\n\nILUSTRACIÓN 1 — HISTORIA COTIDIANA:\n[Historia real y cercana de 100 palabras que ilustra el tema central]\n\nILUSTRACIÓN 2 — ANALOGÍA VISUAL:\n[Comparación o metáfora poderosa que explica la verdad bíblica en términos simples]\n\nILUSTRACIÓN 3 — EJEMPLO HISTÓRICO O BÍBLICO:\n[Personaje bíblico o histórico que vivió esta verdad]\n\nADAPTACIONES POR AUDIENCIA:\n📱 Para jóvenes: [Cómo adaptar el mensaje para conectar con jóvenes de 18-30 años]\n👨‍👩‍👧 Para familias: [Cómo adaptar el mensaje para conectar con familias]\n🌱 Para nuevos creyentes: [Cómo simplificar el mensaje para alguien que recién llega a la fe]",
+  "pasajes": "5 pasajes bíblicos relacionados con el tema ${tema}:\n\n① [LIBRO CAPÍTULO:VERSÍCULO] — [Cita textual del versículo] | Por qué conecta: [Explicación de 1-2 oraciones de cómo refuerza el mensaje]\n\n② [LIBRO CAPÍTULO:VERSÍCULO] — [Cita textual del versículo] | Por qué conecta: [Explicación de 1-2 oraciones]\n\n③ [LIBRO CAPÍTULO:VERSÍCULO] — [Cita textual del versículo] | Por qué conecta: [Explicación de 1-2 oraciones]\n\n④ [LIBRO CAPÍTULO:VERSÍCULO] — [Cita textual del versículo] | Por qué conecta: [Explicación de 1-2 oraciones]\n\n⑤ [LIBRO CAPÍTULO:VERSÍCULO] — [Cita textual del versículo] | Por qué conecta: [Explicación de 1-2 oraciones]\n\nSUGERENCIA DE USO: Puedes citar estos versículos durante el Movimiento 2 para dar mayor profundidad bíblica a tu mensaje."
 }`;
 
   try {
@@ -557,7 +617,7 @@ Devuelve SOLO este JSON (sin markdown ni texto extra):
     document.getElementById('results').classList.add('active');
 
     // Populate sections with typewriter effect
-    const sectionKeys = ['gancho','tension','giro','mision','cierre'];
+    const sectionKeys = ['gancho','tension','giro','mision','cierre','ilustraciones','pasajes'];
     for (let i = 0; i < sectionKeys.length; i++) {
       const key = sectionKeys[i];
       const text = parsed[key] || 'Sin contenido generado para esta sección.';
